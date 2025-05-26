@@ -1,4 +1,4 @@
-# Laravel + Vue.js Project
+# Laravel 12 + InertiaJs + Vue.js  Project
 
 This is a Laravel and Vue.js application. Follow the instructions below to set it up on your local machine.
 
