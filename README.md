@@ -7,7 +7,7 @@ Clone the repository using the command below:
 ## Installation
 1. Clone the repository:
 ```bash
-git clone https://github.com/MohammedQa7/ContentSchedulerAssess
+git clone https://github.com/MohammedQa7/ContentSchedulerAssess.git
 ```
 
 2. Install dependencies:
