@@ -11,7 +11,7 @@ use Doctrine\Inflector\Rules\English\Rules;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 
-class PostRequest extends FormRequest
+class UpdatePostRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -33,8 +33,10 @@ class PostRequest extends FormRequest
             'title' => ['required', 'max:255'],
             'content' => ['required', new PlatformTextLimit($this->input('platforms'))],
             'image' => ['nullable'],
-            'platforms' => ['required_unless:publishOption,' . PostStatus::DRAFT->value, 'array'],
-            'platforms.*' => ['required', 'exists:platforms,type'],
+            'platforms' => ['nullable', 'array'],
+            'platforms.*' => ['nullable', 'exists:platforms,type'],
+            'removedPlatforms' => ['nullable', 'array'],
+            'removedPlatforms.*' => ['nullable', 'exists:platforms,type'],
             'scheduledDate' => [new ScheduledTimeRequired($this->input('publishOption'))],
             'publishOption' => ['required', new Enum(PostStatus::class)],
             'tags' => ['nullable', 'array'],
@@ -54,7 +56,6 @@ class PostRequest extends FormRequest
         $validator->sometimes('image', 'required', function ($input) {
             return sizeof($input->platforms) > 0 && in_array(PlatformTypes::INSTAGRAM->value, $input->platforms);
         });
-
     }
 
     // Preparing anything you need before commiting the validation

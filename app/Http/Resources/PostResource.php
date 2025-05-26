@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\PostStatus;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Carbon;
@@ -24,12 +25,21 @@ class PostResource extends JsonResource
             'content' => $this->content,
             'image' => $this->image_url ? Storage::disk('public')->url($this->image_url) : null,
             'imageOriginalPath' => $this->image_url,
-            'scheduledTime' => $this->scheduled_time ? Carbon::parse($this->scheduled_time) : null,
-            'publishedAt' => Carbon::parse($this->published_at)->diffForHumans(),
+            'scheduledDate' => $this->formatOnRoute($request, $this->scheduled_time),
+            'publishedAt' => $this->published_at ? Carbon::parse($this->published_at)->diffForHumans() : null,
             'publishedAtRawDate' => Carbon::parse($this->published_at),
             'status' => $this->status,
             'tags' => $this->tags,
 
         ];
+    }
+
+    function formatOnRoute(Request $request, $date)
+    {
+        if ($request->routeIs('posts.edit')) {
+            return $this->status->value == PostStatus::SCHEDULED->value ? $date : null;
+        } else {
+            return $date ? Carbon::parse($date)->diffForHumans() : null;
+        }
     }
 }

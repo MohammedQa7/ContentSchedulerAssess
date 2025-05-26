@@ -19,6 +19,9 @@ class PlatformResource extends JsonResource
             'name' => $this->name,
             'type' => $this->type,
             'enabled' => $this->isPlatfromEnabled(),
+            "postsCount" => $this->posts_count ?? null,
+            "publishedPostsCount" => $this->published_posts_count ?? null,
+            "scheduledPostsCount" => $this->scheduled_posts_count ?? null,
         ];
     }
 }

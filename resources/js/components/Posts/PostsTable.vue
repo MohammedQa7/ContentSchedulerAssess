@@ -1,5 +1,4 @@
 <template>
-    <CreatePostDialog />
     <Card class="mb-6">
         <CardHeader>
             <CardTitle>Posts</CardTitle>
@@ -32,7 +31,7 @@
 
                             <td class="px-4 py-3 text-left">{{ post.title }}</td>
                             <td class="px-4 py-3 text-left">{{ post.content }}</td>
-                            <td class="px-4 py-3 text-left">{{ post.scheduledTime ?? 'Not Scheduled' }}</td>
+                            <td class="px-4 py-3 text-left">{{ post.scheduledDate ?? 'Not Scheduled' }}</td>
                             <td class="px-4 py-3 text-left">{{ post.publishedAt }}</td>
                             <td class="px-4 py-3 text-center">
                                 <div class="space-x-1">
@@ -57,7 +56,7 @@
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem @click.prevent="toggleEditPostDialog(post.id)">
+                                        <DropdownMenuItem v-if="isNull(post.publishedAt)" @click.prevent="toggleEditPostDialog(post.id)">
                                             <PencilIcon class="mr-2 h-4 w-4" />
                                             Edit
                                         </DropdownMenuItem>
@@ -97,7 +96,7 @@
     </DeleteDialog>
 
     <EditPostDialog v-if="showEditDialog" :is-open="showEditDialog" @update:open="showEditDialog = $event"
-        :post="editablePost" />
+        :post="editablePost" :platforms="platforms" :attached-platforms="attachedPlatforms" />
 </template>
 
 
@@ -105,7 +104,6 @@
 import { MoreHorizontalIcon, Package, PencilIcon, TrashIcon } from 'lucide-vue-next';
 import Card from '../ui/card/Card.vue';
 import CardContent from '../ui/card/CardContent.vue';
-import CardDescription from '../ui/card/CardDescription.vue';
 import CardHeader from '../ui/card/CardHeader.vue';
 import CardTitle from '../ui/card/CardTitle.vue';
 import Button from '../ui/button/Button.vue';
@@ -117,22 +115,22 @@ import DropdownMenuItem from '../ui/dropdown-menu/DropdownMenuItem.vue';
 import DropdownMenuSeparator from '../ui/dropdown-menu/DropdownMenuSeparator.vue';
 import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
-import CreatePostDialog from './CreatePostDialog.vue';
 import CustomPagination from '../CustomPagination.vue';
 import DeleteDialog from '../DeleteDialog.vue';
 import { toast } from 'vue-sonner';
-import axios from 'axios';
 import EditPostDialog from './EditPostDialog.vue';
+import {isNull} from 'lodash';
 const deleteDialogProps = ref({
     isOpen: false,
     post: null
 });
+const isLoading = ref(false);
 const showEditDialog = ref(false);
 const editablePost = ref(null);
-const isLoading = ref(false);
+const platforms = ref(null);
+const attachedPlatforms = ref(null);
 const propsData = defineProps({
     posts: Array,
-    platforms: Array,
 });
 
 
@@ -140,13 +138,15 @@ const toggleEditPostDialog = (post) => {
     isLoading.value = true;
 
     router.visit(route('posts.edit', { post: post }), {
-        only: ['post'],
+        only: ['post', 'attatchedPlatforms', 'unAttatchedPlatforms'],
         preserveScroll: true,
         preserveState: true,
         preserveUrl: true,
         onSuccess: (page) => {
             showEditDialog.value = true;
             editablePost.value = page.props.post.data;
+            platforms.value = page.props.unAttatchedPlatforms.data;
+            attachedPlatforms.value = page.props.attatchedPlatforms.data;
             isLoading.value = false;
         },
         onError: () => {
@@ -166,6 +166,8 @@ const deletePost = () => {
     if (deleteDialogProps.value.post) {
         router.delete(route('posts.destroy', { post: deleteDialogProps.value.post.id }), {
             onSuccess: () => {
+                deleteDialogProps.value.isOpen = false;
+                deleteDialogProps.value.post = null;
                 toast.success('Post has been deleted');
             },
             onError: () => {

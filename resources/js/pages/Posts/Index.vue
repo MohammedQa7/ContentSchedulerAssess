@@ -1,5 +1,5 @@
 <template>
-    <div class="p-4">
+    <div class="p-4 space-y-6">
         <header class="mb-8">
             <div class="flex items-center space-x-2 mb-2">
                 <div class="size-8 rounded-md bg-primary flex items-center justify-center">
@@ -11,7 +11,7 @@
         </header>
 
         <!-- Posts overview -->
-        <Overview />
+        <Overview v-if="postCountPerPlatform" :post-count-per-platform="postCountPerPlatform.data" />
 
         <!-- Post filitring  -->
         <Filter :publish-status="publishStatus" />
@@ -34,6 +34,7 @@ const propsData = defineProps({
     platforms: Object,
     publishStatus: Array,
     schedualedPosts: Object,
+    postCountPerPlatform: Array,
 })
 
 defineOptions({

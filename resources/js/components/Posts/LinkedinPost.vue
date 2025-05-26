@@ -30,9 +30,11 @@
                 <p class="text-sm mb-3">
                     {{ post.content }}
                 </p>
-                <p class="text-sm text-blue-600 mb-3">
-                    #ProductLaunch #Innovation #TechNews
-                </p>
+                <div class="space-x-1">
+                    <span v-for="(tag, index) in post.tags" :key="index" class="text-sm text-sky-500 mt-1">
+                        #{{ tag }}
+                    </span>
+                </div>
                 <img v-if="post.image" :src="post?.image" alt="Team working" class="w-full h-auto rounded-md" />
             </CardContent>
 

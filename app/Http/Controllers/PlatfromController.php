@@ -4,24 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\PlatformResource;
 use App\Models\Platform;
+use App\Services\PlatformService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class PlatfromController extends Controller
 {
-    function index()
+    function index(PlatformService $platform_service)
     {
-        $platforms = Platform::get();
-        $enabled_platfomrs = Platform::withWhereHas(
-            'user',
-            function ($query) {
-                return $query->where('user_id', auth()->id());
-            }
-        )->get();
 
         return Inertia::render('PlatformManager', [
-            'platforms' => PlatformResource::collection($platforms),
-            'enabledPlatforms' => PlatformResource::collection($enabled_platfomrs)
+            'platforms' => PlatformResource::collection($platform_service->getPlatfroms()),
+            'enabledPlatforms' => PlatformResource::collection($platform_service->getEnabledPlatforms())
         ]);
     }
 }

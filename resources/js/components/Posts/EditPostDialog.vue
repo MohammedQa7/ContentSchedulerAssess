@@ -23,12 +23,16 @@
                     <Textarea id="content" v-model="form.content" rows="6" placeholder="Write your post content here..."
                         required />
                     <InputError :message="form.errors?.content" />
-                    <InputError :message="form.errors?.image" />
+                    <p class="text-sm text-muted-foreground text-right">{{ form.content.length }}</p>
                 </div>
 
                 <!-- Platform Selection -->
                 <PlatformSelector @bindSelectedPlatforms="bindSelectedPlatforms" :platforms="platforms" />
                 <InputError :message="form.errors?.platforms" />
+
+                <PlatformSelector @bindRemovedPlatforms="bindRemovedPlatforms" :platforms="attachedPlatforms"
+                    :is-editable="true" />
+
 
                 <!-- Publishing Options with RadioGroup -->
                 <PublishingOptions @bindSelectedOption=bindSelectedPublishingOption
@@ -41,7 +45,8 @@
                     <h4 class="text-sm font-medium">Schedule Details</h4>
                     <div class="space-y-2 flex flex-col">
                         <Label for="start-date" class="text-sm font-medium">Date</Label>
-                        <Calendar @bindCalendarDate="bindCalendarDate" />
+                        <Calendar @bindCalendarDate="bindCalendarDate"
+                            :selected-date="post.status == 'Scheduled' ? post.scheduledDate : null" />
                         <InputError :message="form.errors?.scheduledDate" />
                     </div>
 
@@ -96,11 +101,10 @@
                         </Button>
                     </DialogClose>
                     <Button @click.prevent="submit" :disabled="form.processing">
-                        {{ form.processing ? 'Creating ...' : submitButtonText }}
+                        {{ form.processing ? 'Saving ...' : 'Save Chagnes' }}
                     </Button>
                 </div>
             </form>
-
         </DialogContent>
 
     </Dialog>
@@ -133,6 +137,8 @@ import vueFilePond from 'vue-filepond';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.esm.js';
 import 'filepond/dist/filepond.min.css';
 import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.css';
+import { toast } from 'vue-sonner';
+import dayjs from 'dayjs';
 const FilePond = vueFilePond(FilePondPluginImagePreview);
 const filepond = ref();
 const myFiles = ref([]);
@@ -142,6 +148,7 @@ const propsData = defineProps({
     isOpen: Boolean,
     post: Object,
     platforms: Object,
+    attachedPlatforms: Object,
 });
 const form = useForm({
     title: '',
@@ -149,6 +156,7 @@ const form = useForm({
     scheduledDate: null,
     image: null,
     platforms: [],
+    removedPlatforms: [],
     tags: [],
     publishOption: '',
 });
@@ -156,15 +164,17 @@ const form = useForm({
 //  filepond init function
 const handleFilePondInit = () => {
     // example of instance method call on pond reference
-    myFiles.value = [{
-        source: '/' + form.image,
-        options: {
-            type: 'local',
-            metadata: {
-                poster: '/' + form.image,
+    if (form.image) {
+        myFiles.value = [{
+            source: '/' + form.image,
+            options: {
+                type: 'local',
+                metadata: {
+                    poster: '/' + form.image,
+                }
             }
-        }
-    }];
+        }];
+    }
 };
 // Handling multi Image load/store Filepone
 const handleFilePondLoad = (response) => {
@@ -191,34 +201,23 @@ const isDialogOpened = computed(() => {
     return propsData.isOpen;
 })
 const bindCalendarDate = (date) => {
-    const formatedDate = new Date(date);
+    if (date) {
+        const formatedDate = new Date(date);
 
-    formatedDate.setHours(startsAt.value.getHours());
-    formatedDate.setMinutes(startsAt.value.getMinutes());
-    formatedDate.setSeconds(startsAt.value.getSeconds());
+        formatedDate.setHours(startsAt.value.getHours());
+        formatedDate.setMinutes(startsAt.value.getMinutes());
+        formatedDate.setSeconds(startsAt.value.getSeconds());
 
-    form.scheduledDate = formatedDate.toLocaleString('sv-SE').replace('T', ' ');
-
+        form.scheduledDate = formatedDate.toLocaleString('sv-SE').replace('T', ' ');
+    }
 }
 
 const bindSelectedPlatforms = (platformArray) => {
     form.platforms = platformArray;
 }
-
-
-// Dynamic submit button text based on selected option
-const submitButtonText = computed(() => {
-    switch (form.publishOption) {
-        case 'publish':
-            return 'Publish Now';
-        case 'schedule':
-            return 'Schedule Post';
-        case 'draft':
-            return 'Save as Draft';
-        default:
-            return 'Submit';
-    }
-});
+const bindRemovedPlatforms = (platform) => {
+    form.removedPlatforms.push(platform);
+}
 
 const bindSelectedPublishingOption = (value) => {
     form.publishOption = value;
@@ -226,30 +225,32 @@ const bindSelectedPublishingOption = (value) => {
 
 
 watch(startsAt, (value) => {
+    console.log(value);
+
     if (form.scheduledDate) {
         bindCalendarDate(form.scheduledDate);
     }
 }, { deep: true });
 
 const submit = () => {
-    console.log(myFiles.value);
-
-    console.log(form.image);
-
-    // form.post(route('posts.store'), {
-    //     onSuccess: () => {
-
-    //     },
-    //     onError: () => {
-
-    //     }
-    // })
+    form.put(route('posts.update', { post: propsData.post.id }), {
+        onSuccess: () => {
+            toast.success('Chagnes have been saved.');
+        },
+        onError: () => {
+            toast.error('Something went wrong.');
+        }
+    })
 }
 
 onMounted(() => {
     Object.assign(form, propsData.post);
     form.image = propsData.post.imageOriginalPath;
     form.publishOption = propsData.post.status;
+    form.platforms = [];
+    startsAt.value = new Date(form.scheduledDate);
+
+
 
     handleFilePondInit();
 })

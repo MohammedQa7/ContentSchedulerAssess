@@ -177,6 +177,7 @@ const isDialogOpened = computed(() => {
 const bindCalendarDate = (date) => {
     const formatedDate = new Date(date);
 
+
     formatedDate.setHours(startsAt.value.getHours());
     formatedDate.setMinutes(startsAt.value.getMinutes());
     formatedDate.setSeconds(startsAt.value.getSeconds());
@@ -187,6 +188,11 @@ const bindCalendarDate = (date) => {
 
 const bindSelectedPlatforms = (platformArray) => {
     form.platforms = platformArray;
+}
+
+
+const bindSelectedPublishingOption = (value) => {
+    form.publishOption = value;
 }
 
 
@@ -204,11 +210,6 @@ const submitButtonText = computed(() => {
     }
 });
 
-const bindSelectedPublishingOption = (value) => {
-    form.publishOption = value;
-}
-
-
 watch(startsAt, (value) => {
     if (form.scheduledDate) {
         bindCalendarDate(form.scheduledDate);
@@ -219,6 +220,7 @@ const submit = () => {
     form.post(route('posts.store'), {
         onSuccess: () => {
             toast.success('Post has been created.')
+            form.reset();
         },
         onError: () => {
             toast.error('Something went wrong while trying to create the post. Please try again later')

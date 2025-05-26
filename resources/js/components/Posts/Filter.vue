@@ -24,6 +24,14 @@
             </div>
             <Calendar @bindCalendarDate="bindCalendarDate" />
         </div>
+        <div class="mb-2 flex items-end">
+            <div>
+                <Button variant="outline" @click.prevent="resetFields">
+                    <X />
+                    Reset
+                </Button>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -37,6 +45,8 @@ import Calendar from '../Calendar.vue';
 import SelectValue from '../ui/select/SelectValue.vue';
 import { onMounted, ref, watch } from 'vue';
 import { debounce } from 'lodash'
+import Button from '../ui/button/Button.vue';
+import { X } from 'lucide-vue-next';
 const propsData = defineProps({
     publishStatus: Object,
     filters: Array,
@@ -56,6 +66,9 @@ const submitFilter = debounce(() => {
         preserveState: true
     });
 }, 500)
+
+const resetFields = () => {
+}
 
 watch(filters, () => {
     submitFilter();

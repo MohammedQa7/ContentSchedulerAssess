@@ -28,6 +28,7 @@ class PublishPost implements ShouldQueue
     {
         $posts = Post::with('platforms')
             ->withoutGlobalScopes()
+            ->where('scheduled_time', '<=', now())
             ->whereNull('published_at')
             ->get();
 

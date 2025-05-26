@@ -19,7 +19,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import {
     CalendarIcon
 } from 'lucide-vue-next'
@@ -30,12 +30,15 @@ import Popover from '@/components/ui/popover/Popover.vue'
 import PopoverTrigger from '@/components/ui/popover/PopoverTrigger.vue'
 import PopoverContent from '@/components/ui/popover/PopoverContent.vue'
 import { cn } from '@/lib/utils'
-import { DateFormatter, parseDate } from '@internationalized/date'
+import { DateFormatter, parseDate, CalendarDate } from '@internationalized/date'
+
 import { watch } from 'vue'
 import { toDate } from 'radix-vue/date'
-import TimePicker from './time-picker.vue'
 const df = new DateFormatter('en-US', { dateStyle: 'long' })
 const date = ref();
+const propsData = defineProps({
+    selectedDate: String,
+});
 const emit = defineEmits();
 
 watch(date, () => {
@@ -44,8 +47,31 @@ watch(date, () => {
         emit('bindCalendarDate', date.value);
     }
 })
+onMounted(() => {
+
+    if (propsData.selectedDate) {
+        const isoDateString = propsData.selectedDate.replace(' ', 'T');
+        const dateObj = new Date(isoDateString);
+        const calendarDate = {
+            calendar: {
+                identifier: 'gregory'
+            },
+            era: dateObj.getFullYear() >= 1 ? "AD" : "BC",
+            year: dateObj.getFullYear(),
+            month: dateObj.getMonth() + 1,
+            day: dateObj.getDate()
+
+        };
+        // Create a CalendarDate object
+        const calendar = new CalendarDate(calendarDate.year,
+            calendarDate.month,
+            calendarDate.day); // year, month, day
+
+        date.value = calendar
+    }
 
 
-
+    // date.value = propsData.selectedDate ? new Date(propsData.selectedDate) : '';
+})
 
 </script>

@@ -27,6 +27,7 @@
 
                 <!-- Posts -->
                 <div class="posts">
+
                     <div v-for="(post, index) in posts" :key="index">
                         <div>
                             <InstagramPost v-if="post.platform == 'Instagram'" :post="post.post.data" />
